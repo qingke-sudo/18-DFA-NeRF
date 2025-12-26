@@ -1,40 +1,75 @@
-# 说话人脸生成对话系统
+# Digital Human Project
 
-## 系统流程
+This project integrates **CosyVoice** (for text-to-speech) and **DFA-NeRF** (for talking head generation) to create a digital human interface.
 
-```
-[用户点击“生成视频”按钮]
-        ↓
-[前端 JS 捕获表单数据并用 fetch 发送 POST 请求]
-        ↓
-[Flask 路由接收 request.form]
-        ↓
-[调用 backend/video_generator.py 中的函数 generate_video()]
-        ↓
-[后端函数返回生成视频的路径]
-        ↓
-[Flask 把路径以 JSON 形式返回给前端]
-        ↓
-[前端 JS 接收到路径 → 替换 <video> 标签的 src → 自动播放视频]
+## Prerequisites
+
+You need to have `conda` installed.
+
+## Setup
+
+### 1. Clone Repositories (Already done if you see the folders)
+
+```bash
+git clone https://github.com/ShunyuYao/DFA-NeRF.git
+git clone --recursive https://github.com/FunAudioLLM/CosyVoice.git
 ```
 
-## 核心模块
-- **训练后端**: `./backend/model_trainer.py` - 负责调用模型执行训练任务
-- **推理后端**: `./backend/video_generator.py` - 负责调用模型执行视频生成推理
+### 2. Setup CosyVoice Environment
 
-## Demo 使用方法
+```bash
+conda create -n cosyvoice python=3.10 -y
+conda activate cosyvoice
+# Install torch (adjust cuda version as needed)
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+cd CosyVoice
+pip install -r requirements.txt
+# Download models (requires modelscope or huggingface)
+# You can use the provided script in CosyVoice repo or download manually.
+# For example:
+from modelscope import snapshot_download
+snapshot_download('iic/CosyVoice-300M-SFT', local_dir='pretrained_models/CosyVoice-300M-SFT')
+```
 
-1. 安装依赖：
+### 3. Setup DFA-NeRF Environment
+
+```bash
+conda create -n adnerf python=3.8 -y
+conda activate adnerf
+cd DFA-NeRF
+# Install dependencies (refer to their environment.yml or install manually)
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+pip install -r requirements.txt # If available, otherwise install:
+pip install opencv-python tqdm scipy scikit-image tensorboardX
+```
+
+**Note:** DFA-NeRF requires pre-trained models and data. Please follow the instructions in `DFA-NeRF/README.md` to download the necessary weights and prepare the `obama` dataset (or your own).
+Specifically, you need:
+- `data_util/face_tracking/3DMM/` files
+- `data_util/face_parsing/79999_iter.pth`
+- `dataset/obama/` (trained model and config)
+
+### 4. Setup Frontend Environment
+
+```bash
+conda create -n frontend python=3.10 -y
+conda activate frontend
+pip install streamlit
+```
+
+## Usage
+
+1. Activate the frontend environment:
    ```bash
-   pip install flask
+   conda activate frontend
+   ```
+2. Run the Streamlit app:
+   ```bash
+   streamlit run frontend/app.py
    ```
 
-2. 启动应用：
-   ```bash
-   python app.py
-   ```
+## Directory Structure
 
-3. 访问应用：
-   打开 http://127.0.0.1:5000
-
-4. 点击探索功能
+- `CosyVoice/`: Text-to-Speech engine.
+- `DFA-NeRF/`: Video generation engine.
+- `frontend/`: Streamlit application and helper scripts.
